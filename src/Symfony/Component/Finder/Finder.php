@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\Finder;
 
-use Symfony\Component\Finder\Adapter\PhpAdapter;
+use Symfony\Component\Finder\Adapter;
 
 /**
  * Finder allows to build rules to find files and directories.
@@ -48,6 +48,7 @@ class Finder implements \IteratorAggregate
     private $iterators   = array();
     private $contains    = array();
     private $notContains = array();
+    private $adapter;
 
     static private $vcsPatterns = array('.svn', '_svn', 'CVS', '_darcs', '.arch-params', '.monotone', '.bzr', '.git', '.hg');
 
@@ -56,7 +57,8 @@ class Finder implements \IteratorAggregate
      */
     public function __construct()
     {
-        $this->ignore = static::IGNORE_VCS_FILES | static::IGNORE_DOT_FILES;
+        $this->ignore  = static::IGNORE_VCS_FILES | static::IGNORE_DOT_FILES;
+        $this->adapter = new Adapter\PhpAdapter();
     }
 
     /**
@@ -69,6 +71,22 @@ class Finder implements \IteratorAggregate
     static public function create()
     {
         return new self();
+    }
+
+    /**
+     * Changes engine implementation.
+     *
+     * @param Adapter\AdapterInterface $adapter An engine implementation
+     *
+     * @return \Symfony\Component\Finder\Finder The current Finder instance
+     */
+    public function using(Adapter\AdapterInterface $adapter)
+    {
+        if ($adapter->isValid()) {
+            $this->adapter = $adapter;
+        }
+
+        return $this;
     }
 
     /**
@@ -562,13 +580,10 @@ class Finder implements \IteratorAggregate
     }
 
     /**
-     * @return \Symfony\Component\Finder\Adapter\AdapterInterface
+     * @param $dir
+     *
+     * @return \Iterator
      */
-    private function getAdapter()
-    {
-        return new PhpAdapter();
-    }
-
     private function searchInDirectory($dir)
     {
         if (static::IGNORE_VCS_FILES === (static::IGNORE_VCS_FILES & $this->ignore)) {
@@ -580,7 +595,7 @@ class Finder implements \IteratorAggregate
         }
 
         return $this
-            ->getAdapter()
+            ->adapter
             ->setFollowLinks($this->followLinks)
             ->setDepths($this->depths)
             ->setMode($this->mode)
