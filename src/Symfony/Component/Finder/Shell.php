@@ -49,9 +49,9 @@ class Shell
      */
     public function testCommand($command)
     {
-        exec($command, $output, $code);
+        exec('whereis '.$command, $output, $code);
 
-        return 0 === $code;
+        return 0 === $code && count($output) > 0;
     }
 
     /**

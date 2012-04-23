@@ -38,7 +38,7 @@ class Command
      */
     public function __construct(Command $parent = null)
     {
-        $this->parent = null;
+        $this->parent = $parent;
         $this->bits   = array();
         $this->labels = array();
     }
@@ -65,6 +65,16 @@ class Command
         return new self($parent);
     }
 
+    static public function escape($input)
+    {
+        return escapeshellcmd($input);
+    }
+
+    static public function quote($input)
+    {
+        return escapeshellarg($input);
+    }
+
     /**
      * Appends a string or a Command instance.
      *
@@ -79,6 +89,17 @@ class Command
         return $this;
     }
 
+    public function top($bit)
+    {
+        array_unshift($this->bits, $bit);
+
+        foreach ($this->labels as $label => $index) {
+            $this->labels[$label] += 1;
+        }
+
+        return $this;
+    }
+
     /**
      * Appends an argument, will be quoted.
      *
@@ -88,7 +109,7 @@ class Command
      */
     public function arg($arg)
     {
-        $this->bits[] = escapeshellarg($arg);
+        $this->bits[] = self::quote($arg);
 
         return $this;
     }
@@ -102,7 +123,7 @@ class Command
      */
     public function cmd($esc)
     {
-        $this->bits[] = escapeshellcmd($esc);
+        $this->bits[] = self::escape($esc);
 
         return $this;
     }
@@ -137,7 +158,11 @@ class Command
      */
     public function get($label)
     {
-        return $this->labels[$label];
+        if (!isset($this->labels[$label])) {
+            throw new \RuntimeException('Label "'.$label.'" does not exists.');
+        }
+
+        return $this->bits[$this->labels[$label]];
     }
 
     /**
@@ -150,10 +175,16 @@ class Command
     public function end()
     {
         if (null === $this->parent) {
+            var_dump($this);
             throw new \RuntimeException('Calling end on root command dont makes sense.');
         }
 
         return $this->parent;
+    }
+
+    public function length()
+    {
+        return count($this->bits);
     }
 
     /**
@@ -177,10 +208,10 @@ class Command
      *
      * @return string
      */
-    private function join()
+    public function join()
     {
         return implode(' ', array_filter(
-            array_map(function($bit) { return $bit instanceof Command ? $bit->join : ($bit ?: null); }, $this->bits),
+            array_map(function($bit) { return $bit instanceof Command ? $bit->join() : ($bit ?: null); }, $this->bits),
             function($bit) { return null !== $bit; }
         ));
     }

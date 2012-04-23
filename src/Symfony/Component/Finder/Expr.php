@@ -145,13 +145,26 @@ class Expr
     }
 
     /**
+     * @param bool $strictLeadingDot
+     * @param bool $strictWildcardSlash
+     *
+     * @return string
+     */
+    public function getRegexBody($strictLeadingDot = true, $strictWildcardSlash = true)
+    {
+        return self::TYPE_REGEX === $this->type
+            ? $this->body
+            : $this->globToRegex($this->expr, $strictLeadingDot, $strictWildcardSlash, false);
+    }
+
+    /**
      * @param string $glob
      * @param bool   $strictLeadingDot
      * @param bool   $strictWildcardSlash
      *
      * @return string
      */
-    private function globToRegex($glob, $strictLeadingDot = true, $strictWildcardSlash = true)
+    private function globToRegex($glob, $strictLeadingDot = true, $strictWildcardSlash = true, $withDecorators = true)
     {
         $firstByte = true;
         $escaping = false;
@@ -205,6 +218,6 @@ class Expr
             $escaping = false;
         }
 
-        return '#^'.$regex.'$#';
+        return $withDecorators ? '#^'.$regex.'$#' : '^'.$regex.'$';
     }
 }

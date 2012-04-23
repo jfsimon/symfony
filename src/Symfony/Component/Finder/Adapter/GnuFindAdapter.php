@@ -24,6 +24,19 @@ use Symfony\Component\Finder\Command;
 class GnuFindAdapter extends AbstractAdapter
 {
     /**
+     * @var \Symfony\Component\Finder\Shell
+     */
+    private $shell;
+
+    /**
+     * Constructor.
+     */
+    public function __construct()
+    {
+        $this->shell = new Shell();
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function searchInDirectory($dir)
@@ -31,7 +44,7 @@ class GnuFindAdapter extends AbstractAdapter
         // -noleaf option is required for filesystems
         // who doesn't follow '.' and '..' convention
         // like MSDOS, CDROM or AFS mount points
-        $command = Command::create('find ')->arg($dir)->add('-noleaf');
+        $command = Command::create()->add('find ')->arg($dir)->add('-noleaf');
 
         if ($this->followLinks) {
             $command->add('-follow');
@@ -56,17 +69,25 @@ class GnuFindAdapter extends AbstractAdapter
         $this->buildSizesOptions($command, $this->sizes);
         $this->buildDatesOptions($command, $this->dates);
 
-        if (0 !== $command->execute($output)) {
-            throw new \RuntimeException();
+        if ($useGrep = $this->shell->testCommand('grep')) {
+            $command->ins('grep');
+            $this->buildContainsOptions($command->get('grep'), $this->contains);
+            $this->buildContainsOptions($command->get('grep'), $this->notContains, true);
+
+            if ($command->get('grep')->length() > 0) {
+                $command->get('grep')->top('-exec sh -c "')->add('"')->cmd(';');
+            }
+
+            var_dump((string) $command);
         }
 
-        $iterator = new Iterator\FilePathsIterator($output, $dir);
+        $iterator = new Iterator\FilePathsIterator($command->execute(), $dir);
 
         if ($this->exclude) {
             $iterator = new Iterator\ExcludeDirectoryFilterIterator($iterator, $this->exclude);
         }
 
-        if ($this->contains || $this->notContains) {
+        if (!$useGrep && ($this->contains || $this->notContains)) {
             $iterator = new Iterator\FilecontentFilterIterator($iterator, $this->contains, $this->notContains);
         }
 
@@ -87,10 +108,8 @@ class GnuFindAdapter extends AbstractAdapter
      */
     public function isSupported()
     {
-        $shell = new Shell();
-
-        return $shell->getType() !== Shell::TYPE_WINDOWS
-            && $shell->testCommand('find');
+        return Shell::TYPE_WINDOWS !== $this->shell->getType()
+            && $this->shell->testCommand('find');
     }
 
     /**
@@ -121,7 +140,7 @@ class GnuFindAdapter extends AbstractAdapter
 
         $command
             ->add('-regextype posix-extended')
-            ->add($not ? '-not' : '')
+            ->add($not ? '-not' : null)
             ->cmd('(')->add(implode(' -or ', $bits))->cmd(')');
     }
 
@@ -218,5 +237,44 @@ class GnuFindAdapter extends AbstractAdapter
         }
 
         $command->cmd('(')->add(implode(' -and ', $bits))->cmd(')');
+    }
+
+    /**
+     * @param \Symfony\Component\Finder\Command $command
+     * @param array                             $contains
+     * @param bool                              $not
+     */
+    private function buildContainsOptions(Command $command, array $contains, $not = false)
+    {
+        foreach ($contains as $contain) {
+            if ($command->length() > 0) {
+                $command->add('|');
+                $reference = false;
+            } else {
+                $reference = true;
+            }
+
+            $expr = Expr::create($contain);
+
+            // -I: dont match binary files
+            // -l: display file path, not matched string
+            $command->add('grep')->add('-Il');
+
+            if (!$expr->isCaseSensitive()) {
+                $command->add('-i');
+            }
+
+            if ($not) {
+                $command->add('-v');
+            }
+
+            $command->add('-Exe')->arg($expr->getRegexBody(false));
+
+            if ($reference) {
+                $command->add('{}');
+            }
+
+            $command->add('| uniq');
+        }
     }
 }
