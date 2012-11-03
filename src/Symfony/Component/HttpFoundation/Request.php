@@ -1287,7 +1287,7 @@ class Request
     }
 
     /**
-     * Splitts an Accept-* header.
+     * Splits an Accept-* header.
      *
      * @param string $header
      *

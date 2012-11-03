@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\HttpFoundation\Negotiation;
 
-use Symfony\Component\HttpFoundation\AcceptHeader;
+use Symfony\Component\HttpFoundation\AcceptHeaderParser;
 
 /**
  * AcceptCharsetQualifier.

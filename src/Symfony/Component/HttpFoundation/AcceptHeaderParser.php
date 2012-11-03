@@ -16,7 +16,7 @@ namespace Symfony\Component\HttpFoundation;
  *
  * @author Jean-François Simon <jeanfrancois.simon@sensiolabs.com>
  */
-class AcceptHeader
+class AcceptHeaderParser
 {
     /**
      * @var array
