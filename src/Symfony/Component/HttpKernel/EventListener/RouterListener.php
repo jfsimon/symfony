@@ -29,6 +29,7 @@ use Symfony\Component\Routing\RequestContextAwareInterface;
 use Symfony\Component\Routing\Matcher\NegotiatorMatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 
 /**
  * Initializes the context from the request and sets request attributes based on a matching route.
@@ -132,7 +133,7 @@ class RouterListener implements EventSubscriberInterface
         }
     }
 
-    public function onKernelResponse(GetResponseEvent $event)
+    public function onKernelResponse(FilterResponseEvent $event)
     {
         $headers = $event->getResponse()->headers;
         $vary = implode(', ', $this->getMatcherNegotiatorVaryingHeaders($event->getRequest()));

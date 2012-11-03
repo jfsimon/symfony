@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Routing\Exception;
 
+use Symfony\Component\Routing\Route;
+
 /**
  * The resource was found but the Accept-* header does not match requirement.
  *
@@ -31,9 +33,9 @@ class NegotiationFailureException extends \RuntimeException implements Exception
      * @param int             $code
      * @param \Exception|null $previous
      */
-    public function __construct(array $negotiatedParameters, array $failures, $code = 0, \Exception $previous = null)
+    public function __construct(Route $route, array $failures, $code = 0, \Exception $previous = null)
     {
-        $this->negotiatedParameters = $negotiatedParameters;
+        $this->negotiatedParameters = $route->getRequirements();
         parent::__construct(sprintf('Negotiation failed for "%s" parameters.', implode(', ', $failures)), $code, $previous);
     }
 

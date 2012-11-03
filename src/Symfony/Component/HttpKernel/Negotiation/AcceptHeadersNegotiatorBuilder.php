@@ -68,9 +68,10 @@ class AcceptHeadersNegotiatorBuilder implements MatcherNegotiatorBuilderInterfac
      */
     private function buildValues($header, \Closure $mapper = null)
     {
-        $qualities = AcceptHeader::split($header);
-        asort($qualities);
-        $values = array_keys($qualities);
+        $qualities = new AcceptHeader($header);
+        $values = $qualities->all();
+        asort($values);
+        $values = array_keys($values);
 
         return $mapper ? array_map($mapper, $values) : $values;
     }
