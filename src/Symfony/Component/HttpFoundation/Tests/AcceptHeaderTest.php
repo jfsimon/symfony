@@ -11,24 +11,24 @@
 
 namespace Symfony\Component\HttpFoundation\Tests;
 
-use Symfony\Component\HttpFoundation\AcceptHeader;
+use Symfony\Component\HttpFoundation\AcceptHeaderParser;
 
-class AcceptHeaderTest extends \PHPUnit_Framework_TestCase
+class AcceptHeaderParserTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @dataProvider allData
      */
-    public function testAll($acceptHeader, $properties)
+    public function testAll($acceptHeaderParser, $properties)
     {
-        $this->assertEquals($properties, AcceptHeader::create($acceptHeader)->all());
+        $this->assertEquals($properties, AcceptHeaderParser::create($acceptHeaderParser)->all());
     }
 
     /**
      * @dataProvider splitQualityData
      */
-    public function testSplitQuality($acceptHeader, $expected)
+    public function testSplitQuality($acceptHeaderParser, $expected)
     {
-        $value = AcceptHeader::create($acceptHeader)
+        $value = AcceptHeaderParser::create($acceptHeaderParser)
             ->setDefaults(array('q' => 1))
             ->sort('q')
             ->getHash('q');

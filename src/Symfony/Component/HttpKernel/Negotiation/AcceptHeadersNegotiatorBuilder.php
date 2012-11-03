@@ -12,7 +12,7 @@
 namespace Symfony\Component\HttpKernel\Negotiation;
 
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\AcceptHeader;
+use Symfony\Component\HttpFoundation\AcceptHeaderParser;
 use Symfony\Component\HttpFoundation\File\MimeType\ExtensionGuesser;
 use Symfony\Component\Routing\Matcher\NegotiatorInterface;
 
@@ -68,7 +68,7 @@ class AcceptHeadersNegotiatorBuilder implements MatcherNegotiatorBuilderInterfac
      */
     private function buildValues($header, \Closure $mapper = null)
     {
-        $qualities = new AcceptHeader($header);
+        $qualities = new AcceptHeaderParser($header);
         $values = $qualities->all();
         asort($values);
         $values = array_keys($values);
