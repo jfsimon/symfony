@@ -158,6 +158,15 @@ class UrlMatcherTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array('_locale' => 'fr', '_route' => 'foo', 'foo' => 'foo'), $matcher->match('/fr/b/foo'));
     }
 
+    public function testMatchSpecialRouteName()
+    {
+        $collection = new RouteCollection();
+        $collection->add('$péß^a|', new Route('/bar'));
+
+        $matcher = new UrlMatcher($collection, new RequestContext());
+        $this->assertEquals(array('_route' => '$péß^a|'), $matcher->match('/bar'));
+    }
+
     public function testMatchNonAlpha()
     {
         $collection = new RouteCollection();
@@ -286,7 +295,7 @@ class UrlMatcherTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException Symfony\Component\Routing\Exception\ResourceNotFoundException
+     * @expectedException \Symfony\Component\Routing\Exception\ResourceNotFoundException
      */
     public function testDefaultRequirementOfVariableDisallowsSlash()
     {
@@ -298,7 +307,7 @@ class UrlMatcherTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException Symfony\Component\Routing\Exception\ResourceNotFoundException
+     * @expectedException \Symfony\Component\Routing\Exception\ResourceNotFoundException
      */
     public function testDefaultRequirementOfVariableDisallowsNextSeparator()
     {
@@ -310,7 +319,7 @@ class UrlMatcherTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException Symfony\Component\Routing\Exception\ResourceNotFoundException
+     * @expectedException \Symfony\Component\Routing\Exception\ResourceNotFoundException
      */
     public function testSchemeRequirement()
     {
@@ -327,5 +336,56 @@ class UrlMatcherTest extends \PHPUnit_Framework_TestCase
 
         $matcher = new UrlMatcher($coll, new RequestContext());
         $this->assertEquals(array('foo' => 'bar%23', '_route' => 'foo'), $matcher->match('/foo/bar%2523'));
+    }
+
+    public function testCannotRelyOnPrefix()
+    {
+        $coll = new RouteCollection();
+
+        $subColl = new RouteCollection();
+        $subColl->add('bar', new Route('/bar'));
+        $subColl->addPrefix('/prefix');
+        // overwrite the pattern, so the prefix is not valid anymore for this route in the collection
+        $subColl->get('bar')->setPattern('/new');
+
+        $coll->addCollection($subColl);
+
+        $matcher = new UrlMatcher($coll, new RequestContext());
+        $this->assertEquals(array('_route' => 'bar'), $matcher->match('/new'));
+    }
+
+    public function testWithHost()
+    {
+        $coll = new RouteCollection();
+        $coll->add('foo', new Route('/foo/{foo}', array(), array(), array(), '{locale}.example.com'));
+
+        $matcher = new UrlMatcher($coll, new RequestContext('', 'GET', 'en.example.com'));
+        $this->assertEquals(array('foo' => 'bar', '_route' => 'foo', 'locale' => 'en'), $matcher->match('/foo/bar'));
+    }
+
+    public function testWithHostOnRouteCollection()
+    {
+        $coll = new RouteCollection();
+        $coll->add('foo', new Route('/foo/{foo}'));
+        $coll->add('bar', new Route('/bar/{foo}', array(), array(), array(), '{locale}.example.net'));
+        $coll->setHost('{locale}.example.com');
+
+        $matcher = new UrlMatcher($coll, new RequestContext('', 'GET', 'en.example.com'));
+        $this->assertEquals(array('foo' => 'bar', '_route' => 'foo', 'locale' => 'en'), $matcher->match('/foo/bar'));
+
+        $matcher = new UrlMatcher($coll, new RequestContext('', 'GET', 'en.example.com'));
+        $this->assertEquals(array('foo' => 'bar', '_route' => 'bar', 'locale' => 'en'), $matcher->match('/bar/bar'));
+    }
+
+    /**
+     * @expectedException \Symfony\Component\Routing\Exception\ResourceNotFoundException
+     */
+    public function testWithOutHostHostDoesNotMatch()
+    {
+        $coll = new RouteCollection();
+        $coll->add('foo', new Route('/foo/{foo}', array(), array(), array(), '{locale}.example.com'));
+
+        $matcher = new UrlMatcher($coll, new RequestContext('', 'GET', 'example.com'));
+        $matcher->match('/foo/bar');
     }
 }

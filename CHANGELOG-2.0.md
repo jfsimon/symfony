@@ -7,6 +7,63 @@ in 2.0 minor versions.
 To get the diff for a specific change, go to https://github.com/symfony/symfony/commit/XXX where XXX is the change hash
 To get the diff between two versions, go to https://github.com/symfony/symfony/compare/v2.0.0...v2.0.1
 
+* 2.0.22 (2013-01-17)
+
+ * 3c87e2e: Added Yaml\Dumper::setIndentation() method to allow a custom indentation level of nested nodes.
+ * ba6e315: added a way to enable/disable object support when parsing/dumping
+ * ac756bf: added a way to enable/disable PHP support when parsing a YAML input via Yaml::parse()
+ * dc2cc6b: [Console] fixed input bug when the value of an option is empty (closes #6649, closes #6689)
+ * 880da01: [Process] In edge cases `getcwd()` can return `false`, then `proc_open()` should get `null` to use default value (the working dir of the current PHP process)
+ * 1d362b8: [DependencyInjection] fixed a bug where the strict flag on references were lost (closes #6607)
+ * 3195122: [HttpFoundation] Check if required shell functions for `FileBinaryMimeTypeGuesser` are not disabled
+ * dbafc2c: [CssSelector] added css selector with empty string
+ * ba2d035: Restrict Monolog version to be in version <1.3
+ * e0923ae: [DependencyInjection] fixed PhpDumper optimizations when an inlined service depends on the current one indirectly
+ * cd15390: [DependencyInjection] fixed PhpDumper when an inlined service definition has some properties
+ * 73d9cef: [Locale] Adjust `StubIntlDateFormatter` to have new methods added in PHP 5.5
+ * 913b564: [Locale] Fix failing `StubIntlDateFormatter` in PHP 5.5
+ * 8ae773b: [Form] Fix failing `MonthChoiceList` in PHP 5.5
+
+* 2.0.21 (2012-12-21)
+
+ * b8e5689: [FrameworkBundle] fixed ESI calls
+
+* 2.0.20 (2012-12-20)
+
+ * 532cc9a: [FrameworkBundle] added support for URIs as an argument to HttpKernel::render()
+ * 1f8c501: [FrameworkBundle] restricted the type of controllers that can be executed by InternalController
+ * 8b2c17f: fix double-decoding in the routing system
+ * 773d818: [FrameworkBundle] Added a check on file mime type for CodeHelper::fileExcerpt()
+ * a0e2391: [FrameworkBundle] used the new method for trusted proxies
+ * 8bb3208: [Config] Loader::import must return imported data
+ * 447ff91: [HttpFoundation] changed UploadedFile::move() to use move_uploaded_file() when possible
+ * 0489799: [HttpFoundation] added a check for the host header value
+ * ae3d531: [TwigBundle] Moved the registration of the app global to the environment
+
+* 2.0.19 (2012-11-29)
+
+ * e5536f0: replaced magic strings by proper constants
+ * 6a3ba52: fixed the logic in Request::isSecure() (if the information comes from a source that we trust, don't check other ones)
+ * 67e12f3: added a way to configure the X-Forwarded-XXX header names and a way to disable trusting them
+ * b45873a: fixed algorithm used to determine the trusted client IP
+ * 254b110: removed the non-standard Client-IP HTTP header
+ * fc89d6b: [DependencyInjection] fixed composer.json
+ * ac77c5b: [Form] Updated checks for the ICU version from 4.5+ to 4.7+ due to test failures with ICU 4.6
+ * 29bfa13: small fix of #5984 when the container param is not set
+ * 64b54dc: Use better default ports in urlRedirectAction
+ * f2cbea3: [Security] remove escape charters from username provided by Digest DigestAuthenticationListener
+ * 694697d: [Security] Fixed digest authentication
+ * c067586: [Security] Fixed digest authentication
+ * 32dc31e: [SecurityBundle] Convert Http method to uppercase in the config
+ * b3a8efd: fixed comment. The parent ACL is not accessed in this method.
+ * e12bd12: [HttpFoundation] Make host & methods really case insensitive in the RequestMacther
+ * 15a5868: [Validator] fixed Ukrainian language code (closes #5972)
+ * dc80385: [Form] Fixed NumberToLocalizedStringTransformer to accept both comma and dot as decimal separator, if possible
+ * 9872d26: [HttpFoundation] Fix name sanitization after perfoming move
+ * 6f15c47: [ClassLoader] fixed unbracketed namespaces (closes #5747)
+ * 2d9a6fc: Use Norm Data instead of Data
+ * a094f7e: Add check to Store::unlock to ensure file exists
+
 * 2.0.18 (2012-10-25)
 
  * 20898e5: Add to DateFormats 'D M d H:i:s Y T' (closes #5830)
@@ -181,7 +238,7 @@ To get the diff between two versions, go to https://github.com/symfony/symfony/c
  * d67d419: [HttpFoundation] added missing trustProxy condition
  * efce640: [Yaml][Parser] throw an exception if not readable
  * aa58330: [Form] fixed flawed condition
- * 253eeba: [BugFix][Validator] Fix for PHP incosistent behaviour of ArrayAccess
+ * 253eeba: [BugFix][Validator] Fix for PHP inconsistent behaviour of ArrayAccess
  * 0507840: Prevent parameters from overwriting the template filename.
  * 9bc41d0: [HttpFoundation] Fixed #3053
  * 9441c46: [DependencyInjection] PhpDumper, fixes #2730

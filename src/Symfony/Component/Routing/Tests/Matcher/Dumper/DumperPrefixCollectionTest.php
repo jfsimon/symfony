@@ -3,7 +3,6 @@
 namespace Symfony\Component\Routing\Tests\Matcher\Dumper;
 
 use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\Matcher\Dumper\DumperPrefixCollection;
 use Symfony\Component\Routing\Matcher\Dumper\DumperRoute;
 use Symfony\Component\Routing\Matcher\Dumper\DumperCollection;
@@ -106,11 +105,10 @@ EOF;
                 $string .= sprintf("%s|-coll %s\n", $prefix, $route->getPrefix());
                 $string .= $this->collectionToString($route, $prefix.'| ');
             } else {
-                $string .= sprintf("%s|-route %s %s\n", $prefix, $route->getName(), $route->getRoute()->getPattern());
+                $string .= sprintf("%s|-route %s %s\n", $prefix, $route->getName(), $route->getRoute()->getPath());
             }
         }
 
         return $string;
     }
 }
-

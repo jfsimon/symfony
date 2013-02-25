@@ -53,12 +53,26 @@ class ProfilerController
     }
 
     /**
+     * Redirects to the last profiles.
+     *
+     * @return RedirectResponse A RedirectResponse instance
+     */
+    public function homeAction()
+    {
+        $this->profiler->disable();
+
+        return new RedirectResponse($this->generator->generate('_profiler_search_results', array('token' => 'empty', 'limit' => 10)));
+    }
+
+    /**
      * Renders a profiler panel for the given token.
      *
      * @param Request $request The current HTTP request
      * @param string  $token   The profiler token
      *
      * @return Response A Response instance
+     *
+     * @throws NotFoundHttpException
      */
     public function panelAction(Request $request, $token)
     {
@@ -93,6 +107,8 @@ class ProfilerController
      * @param string $token The profiler token
      *
      * @return Response A Response instance
+     *
+     * @throws NotFoundHttpException
      */
     public function exportAction($token)
     {
@@ -166,11 +182,10 @@ class ProfilerController
      *
      * @param Request $request  The current HTTP Request
      * @param string  $token    The profiler token
-     * @param string  $position The toolbar position (top, bottom, normal, or null -- use the configuration)
      *
      * @return Response A Response instance
      */
-    public function toolbarAction(Request $request, $token, $position = null)
+    public function toolbarAction(Request $request, $token)
     {
         $session = $request->getSession();
 
@@ -189,7 +204,8 @@ class ProfilerController
             return new Response();
         }
 
-        if (null === $position) {
+        // the toolbar position (top, bottom, normal, or null -- use the configuration)
+        if (null === $position = $request->query->get('position')) {
             $position = $this->toolbarPosition;
         }
 
@@ -224,12 +240,16 @@ class ProfilerController
             $ip     =
             $method =
             $url    =
+            $start  =
+            $end    =
             $limit  =
             $token  = null;
         } else {
             $ip     = $session->get('_profiler_search_ip');
             $method = $session->get('_profiler_search_method');
             $url    = $session->get('_profiler_search_url');
+            $start  = $session->get('_profiler_search_start');
+            $end    = $session->get('_profiler_search_end');
             $limit  = $session->get('_profiler_search_limit');
             $token  = $session->get('_profiler_search_token');
         }
@@ -239,6 +259,8 @@ class ProfilerController
             'ip'     => $ip,
             'method' => $method,
             'url'    => $url,
+            'start'  => $start,
+            'end'    => $end,
             'limit'  => $limit,
         )));
     }
@@ -260,17 +282,21 @@ class ProfilerController
         $ip     = $request->query->get('ip');
         $method = $request->query->get('method');
         $url    = $request->query->get('url');
+        $start  = $request->query->get('start', null);
+        $end    = $request->query->get('end', null);
         $limit  = $request->query->get('limit');
 
         return new Response($this->twig->render('@WebProfiler/Profiler/results.html.twig', array(
-            'token'    => $token,
-            'profile'  => $profile,
-            'tokens'   => $this->profiler->find($ip, $url, $limit, $method),
-            'ip'       => $ip,
-            'method'   => $method,
-            'url'      => $url,
-            'limit'    => $limit,
-            'panel'    => null,
+            'token'     => $token,
+            'profile'   => $profile,
+            'tokens'    => $this->profiler->find($ip, $url, $limit, $method, $start, $end),
+            'ip'        => $ip,
+            'method'    => $method,
+            'url'       => $url,
+            'start'     => $start,
+            'end'       => $end,
+            'limit'     => $limit,
+            'panel'     => null,
         )));
     }
 
@@ -288,6 +314,8 @@ class ProfilerController
         $ip     = preg_replace('/[^:\d\.]/', '', $request->query->get('ip'));
         $method = $request->query->get('method');
         $url    = $request->query->get('url');
+        $start  = $request->query->get('start', null);
+        $end    = $request->query->get('end', null);
         $limit  = $request->query->get('limit');
         $token  = $request->query->get('token');
 
@@ -295,6 +323,8 @@ class ProfilerController
             $session->set('_profiler_search_ip', $ip);
             $session->set('_profiler_search_method', $method);
             $session->set('_profiler_search_url', $url);
+            $session->set('_profiler_search_start', $start);
+            $session->set('_profiler_search_end', $end);
             $session->set('_profiler_search_limit', $limit);
             $session->set('_profiler_search_token', $token);
         }
@@ -303,13 +333,15 @@ class ProfilerController
             return new RedirectResponse($this->generator->generate('_profiler', array('token' => $token)));
         }
 
-        $tokens = $this->profiler->find($ip, $url, $limit, $method);
+        $tokens = $this->profiler->find($ip, $url, $limit, $method, $start, $end);
 
         return new RedirectResponse($this->generator->generate('_profiler_search_results', array(
             'token'  => $tokens ? $tokens[0]['token'] : 'empty',
             'ip'     => $ip,
             'method' => $method,
             'url'    => $url,
+            'start'  => $start,
+            'end'    => $end,
             'limit'  => $limit,
         )));
     }

@@ -202,6 +202,8 @@ class Command
      *
      * @return integer The command exit code
      *
+     * @throws \Exception
+     *
      * @see setCode()
      * @see execute()
      *
@@ -247,16 +249,22 @@ class Command
      * If this method is used, it overrides the code defined
      * in the execute() method.
      *
-     * @param \Closure $code A \Closure
+     * @param callable $code A callable(InputInterface $input, OutputInterface $output)
      *
      * @return Command The current instance
+     *
+     * @throws \InvalidArgumentException
      *
      * @see execute()
      *
      * @api
      */
-    public function setCode(\Closure $code)
+    public function setCode($code)
     {
+        if (!is_callable($code)) {
+            throw new \InvalidArgumentException('Invalid callable provided to Command::setCode.');
+        }
+
         $this->code = $code;
 
         return $this;

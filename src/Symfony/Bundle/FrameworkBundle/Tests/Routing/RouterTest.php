@@ -113,7 +113,30 @@ class RoutingTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             '/before/foo/after/%unescaped%',
-            $route->getPattern()
+            $route->getPath()
+        );
+    }
+
+    public function testHostPlaceholders()
+    {
+        $routes = new RouteCollection();
+
+        $route = new Route('foo');
+        $route->setHost('/before/%parameter.foo%/after/%%unescaped%%');
+
+        $routes->add('foo', $route);
+
+        $sc = $this->getServiceContainer($routes);
+
+        $sc->expects($this->at(1))->method('hasParameter')->with('parameter.foo')->will($this->returnValue(true));
+        $sc->expects($this->at(2))->method('getParameter')->with('parameter.foo')->will($this->returnValue('foo'));
+
+        $router = new Router($sc, 'foo');
+        $route = $router->getRouteCollection()->get('foo');
+
+        $this->assertEquals(
+            '/before/foo/after/%unescaped%',
+            $route->getHost()
         );
     }
 
@@ -173,7 +196,7 @@ class RoutingTest extends \PHPUnit_Framework_TestCase
 
     public function getNonStringValues()
     {
-        return array(array(null), array(false), array(true), array(new \stdClass()), array(array('foo', 'bar')));
+        return array(array(null), array(false), array(true), array(new \stdClass()), array(array('foo', 'bar')), array(array(array())));
     }
 
     private function getServiceContainer(RouteCollection $routes)

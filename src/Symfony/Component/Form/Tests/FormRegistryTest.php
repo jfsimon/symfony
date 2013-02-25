@@ -76,7 +76,9 @@ class FormRegistryTest extends \PHPUnit_Framework_TestCase
             ->method('getName')
             ->will($this->returnValue('foo'));
 
+        set_error_handler(array('Symfony\Component\Form\Test\DeprecationErrorHandler', 'handle'));
         $this->registry->addType($resolvedType);
+        restore_error_handler();
 
         $this->assertSame($resolvedType, $this->registry->getType('foo'));
     }
@@ -186,7 +188,7 @@ class FormRegistryTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException Symfony\Component\Form\Exception\FormException
+     * @expectedException \Symfony\Component\Form\Exception\Exception
      */
     public function testGetTypeThrowsExceptionIfParentNotFound()
     {
@@ -198,7 +200,7 @@ class FormRegistryTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException Symfony\Component\Form\Exception\FormException
+     * @expectedException \Symfony\Component\Form\Exception\Exception
      */
     public function testGetTypeThrowsExceptionIfTypeNotFound()
     {
@@ -206,7 +208,7 @@ class FormRegistryTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException Symfony\Component\Form\Exception\UnexpectedTypeException
+     * @expectedException \Symfony\Component\Form\Exception\UnexpectedTypeException
      */
     public function testGetTypeThrowsExceptionIfNoString()
     {
@@ -223,7 +225,9 @@ class FormRegistryTest extends \PHPUnit_Framework_TestCase
 
         $this->assertFalse($this->registry->hasType('foo'));
 
+        set_error_handler(array('Symfony\Component\Form\Test\DeprecationErrorHandler', 'handle'));
         $this->registry->addType($resolvedType);
+        restore_error_handler();
 
         $this->assertTrue($this->registry->hasType('foo'));
     }
@@ -254,6 +258,12 @@ class FormRegistryTest extends \PHPUnit_Framework_TestCase
         $expectedGuesser = new FormTypeGuesserChain(array($this->guesser1, $this->guesser2));
 
         $this->assertEquals($expectedGuesser, $this->registry->getTypeGuesser());
+
+        $registry = new FormRegistry(
+            array($this->getMock('Symfony\Component\Form\FormExtensionInterface')),
+            $this->resolvedTypeFactory);
+
+        $this->assertNull($registry->getTypeGuesser());
     }
 
     public function testGetExtensions()

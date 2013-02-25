@@ -22,6 +22,10 @@ $container->loadFromExtension('security', array(
             'iterations' => 5,
             'key_length' => 30,
         ),
+        'JMS\FooBundle\Entity\User6' => array(
+            'algorithm' => 'bcrypt',
+            'cost' => 15,
+        ),
     ),
     'providers' => array(
         'default' => array(
@@ -70,7 +74,7 @@ $container->loadFromExtension('security', array(
     ),
 
     'access_control' => array(
-        array('path' => '/blog/524', 'role' => 'ROLE_USER', 'requires_channel' => 'https'),
+        array('path' => '/blog/524', 'role' => 'ROLE_USER', 'requires_channel' => 'https', 'methods' => array('get', 'POST')),
         array('path' => '/blog/.*', 'role' => 'IS_AUTHENTICATED_ANONYMOUSLY'),
     ),
 

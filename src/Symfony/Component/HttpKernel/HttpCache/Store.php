@@ -24,7 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class Store implements StoreInterface
 {
-    private $root;
+    protected $root;
     private $keyCache;
     private $locks;
 
@@ -84,6 +84,7 @@ class Store implements StoreInterface
 
             return true;
         }
+
         return !file_exists($path) ?: $path;
     }
 
@@ -91,10 +92,14 @@ class Store implements StoreInterface
      * Releases the lock for the given Request.
      *
      * @param Request $request A Request instance
+     *
+     * @return Boolean False if the lock file does not exist or cannot be unlocked, true otherwise
      */
     public function unlock(Request $request)
     {
-        return @unlink($this->getPath($this->getCacheKey($request).'.lck'));
+        $file = $this->getPath($this->getCacheKey($request).'.lck');
+
+        return is_file($file) ? @unlink($file) : false;
     }
 
     public function isLocked(Request $request)
@@ -152,6 +157,8 @@ class Store implements StoreInterface
      * @param Response $response A Response instance
      *
      * @return string The key under which the response is stored
+     *
+     * @throws \RuntimeException
      */
     public function write(Request $request, Response $response)
     {
@@ -160,7 +167,7 @@ class Store implements StoreInterface
 
         // write the response body to the entity store if this is the original response
         if (!$response->headers->has('X-Content-Digest')) {
-            $digest = 'en'.sha1($response->getContent());
+            $digest = $this->generateContentDigest($response);
 
             if (false === $this->save($digest, $response->getContent())) {
                 throw new \RuntimeException('Unable to store the entity.');
@@ -199,9 +206,23 @@ class Store implements StoreInterface
     }
 
     /**
+     * Returns content digest for $response.
+     *
+     * @param Response $response
+     *
+     * @return string
+     */
+    protected function generateContentDigest(Response $response)
+    {
+        return 'en'.sha1($response->getContent());
+    }
+
+    /**
      * Invalidates all cache entries that match the request.
      *
      * @param Request $request A Request instance
+     *
+     * @throws \RuntimeException
      */
     public function invalidate(Request $request)
     {
@@ -319,6 +340,8 @@ class Store implements StoreInterface
      *
      * @param string $key  The store key
      * @param string $data The data to store
+     *
+     * @return Boolean
      */
     private function save($key, $data)
     {
@@ -398,6 +421,8 @@ class Store implements StoreInterface
      *
      * @param array  $headers An array of HTTP headers for the Response
      * @param string $body    The Response body
+     *
+     * @return Response
      */
     private function restoreResponse($headers, $body = null)
     {
