@@ -334,7 +334,7 @@ class Command
      *
      * @return InputDefinition An InputDefinition instance
      */
-    protected function getNativeDefinition()
+    public function getNativeDefinition()
     {
         return $this->getDefinition();
     }

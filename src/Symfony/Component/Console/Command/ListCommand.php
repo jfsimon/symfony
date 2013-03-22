@@ -66,7 +66,7 @@ EOF
     /**
      * {@inheritdoc}
      */
-    protected function getNativeDefinition()
+    public function getNativeDefinition()
     {
         return $this->createDefinition();
     }
