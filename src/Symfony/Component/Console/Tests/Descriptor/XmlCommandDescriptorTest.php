@@ -13,9 +13,9 @@ namespace Symfony\Component\Console\Tests\Command;
 
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Console\Descriptor\TextCommandDescriptor;
+use Symfony\Component\Console\Descriptor\XmlCommandDescriptor;
 
-class TextCommandDescriptorTest extends \PHPUnit_Framework_TestCase
+class XmlCommandDescriptorTest extends \PHPUnit_Framework_TestCase
 {
     protected static $fixturesPath;
 
@@ -32,34 +32,18 @@ class TextCommandDescriptorTest extends \PHPUnit_Framework_TestCase
         $tester = new CommandTester($command);
         $tester->execute(array('command' => $command->getName()));
 
-        $descriptor = new TextCommandDescriptor();
+        $descriptor = new XmlCommandDescriptor();
 
         $this->assertStringEqualsFile(
-                self::$fixturesPath.'/Descriptors/formatted_command.txt',
+                self::$fixturesPath.'/Descriptors/command.xml',
                 $descriptor->describe($command),
-                '->describe($command) returns a formatted description in text format'
-        );
-    }
-
-    public function testRawDescription()
-    {
-        $command = new \TestCommand();
-        $command->setApplication(new Application());
-        $tester = new CommandTester($command);
-        $tester->execute(array('command' => $command->getName()));
-
-        $descriptor = new TextCommandDescriptor();
-
-        $this->assertStringEqualsFile(
-                self::$fixturesPath.'/Descriptors/raw_command.txt',
-                $descriptor->describe($command, true),
-                '->describe($command) returns a formatted description in text format'
+                '->describe($command) returns a description in XML format'
         );
     }
 
     public function testSupportCommand()
     {
-        $descriptor = new TextCommandDescriptor();
+        $descriptor = new XmlCommandDescriptor();
         $this->assertTrue(
                 $descriptor->supports(new \TestCommand()),
                 '->supports($commands) checks if the command is supported'
@@ -68,7 +52,7 @@ class TextCommandDescriptorTest extends \PHPUnit_Framework_TestCase
 
     public function testDoesNotSupportNonCommand()
     {
-        $descriptor = new TextCommandDescriptor();
+        $descriptor = new XmlCommandDescriptor();
         $this->assertFalse(
                 $descriptor->supports(new \stdClass()),
                 '->supports($object) checks if the object is not supported'
@@ -77,9 +61,9 @@ class TextCommandDescriptorTest extends \PHPUnit_Framework_TestCase
 
     public function testFormat()
     {
-        $descriptor = new TextCommandDescriptor();
+        $descriptor = new XmlCommandDescriptor();
         $this->assertSame(
-                'txt',
+                'xml',
                 $descriptor->getFormat(),
                 '->getFormat() returns the format'
         );
@@ -87,8 +71,8 @@ class TextCommandDescriptorTest extends \PHPUnit_Framework_TestCase
 
     public function testUseFormating()
     {
-        $descriptor = new TextCommandDescriptor();
-        $this->assertTrue(
+        $descriptor = new XmlCommandDescriptor();
+        $this->assertFalse(
                 $descriptor->useFormatting(),
                 '->useFormatting() checks if formatting is used'
         );
