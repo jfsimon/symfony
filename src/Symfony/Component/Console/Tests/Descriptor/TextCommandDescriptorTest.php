@@ -25,7 +25,7 @@ class TextCommandDescriptorTest extends \PHPUnit_Framework_TestCase
         require_once self::$fixturesPath.'/TestCommand.php';
     }
 
-    public function testDescribe()
+    public function testFormattedDescription()
     {
         $command = new \TestCommand();
         $command->setApplication(new Application());
@@ -34,30 +34,63 @@ class TextCommandDescriptorTest extends \PHPUnit_Framework_TestCase
 
         $descriptor = new TextCommandDescriptor();
 
-        $this->assertStringEqualsFile(self::$fixturesPath.'/Descriptors/formatted_command.txt', $descriptor->describe($command), '->describe($command) returns a text representation of the command');
+        $this->assertStringEqualsFile(
+                self::$fixturesPath.'/Descriptors/formatted_command.txt',
+                $descriptor->describe($command),
+                '->describe($command) returns a formatted description in text format'
+        );
+    }
+
+    public function testRawDescription()
+    {
+        $command = new \TestCommand();
+        $command->setApplication(new Application());
+        $tester = new CommandTester($command);
+        $tester->execute(array('command' => $command->getName()));
+
+        $descriptor = new TextCommandDescriptor();
+
+        $this->assertStringEqualsFile(
+                self::$fixturesPath.'/Descriptors/raw_command.txt',
+                $descriptor->describe($command, true),
+                '->describe($command) returns a formatted description in text format'
+        );
     }
 
     public function testSupportCommand()
     {
         $descriptor = new TextCommandDescriptor();
-        $this->assertTrue($descriptor->supports(new \TestCommand()), '->supports($commands) checks if the command is supported');
+        $this->assertTrue(
+                $descriptor->supports(new \TestCommand()),
+                '->supports($commands) checks if the command is supported'
+        );
     }
 
     public function testDoesNotSupportNonCommand()
     {
         $descriptor = new TextCommandDescriptor();
-        $this->assertFalse($descriptor->supports(new \stdClass()), '->supports($object) checks if the object is not supported');
+        $this->assertFalse(
+                $descriptor->supports(new \stdClass()),
+                '->supports($object) checks if the object is not supported'
+        );
     }
 
     public function testFormat()
     {
         $descriptor = new TextCommandDescriptor();
-        $this->assertSame('txt', $descriptor->getFormat(), '->getFormat() returns the format');
+        $this->assertSame(
+                'txt',
+                $descriptor->getFormat(),
+                '->getFormat() returns the format'
+        );
     }
 
     public function testUseFormating()
     {
         $descriptor = new TextCommandDescriptor();
-        $this->assertTrue($descriptor->useFormatting(), '->useFormatting() checks if formatting is done');
+        $this->assertTrue(
+                $descriptor->useFormatting(),
+                '->useFormatting() checks if formatting is done'
+        );
     }
 }
