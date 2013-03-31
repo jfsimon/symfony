@@ -49,10 +49,11 @@ class TextCommandDescriptor implements DescriptorInterface
         $help = $object->getProcessedHelp();
         if ($help) {
             $messages[] = $raw ? 'Help:' : '<comment>Help:</comment>';
-            $messages[] = ' '.str_replace("\n", "\n ", $help)."\n";
+            $messages[] = ' '.str_replace(PHP_EOL, PHP_EOL.' ', $help);
+            $messages[] = '';
         }
 
-        return implode("\n", $messages);
+        return implode(PHP_EOL, $messages);
     }
 
     /**
