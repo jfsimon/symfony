@@ -12,9 +12,9 @@
 namespace Symfony\Component\Console\Tests\Command;
 
 use Symfony\Component\Console\Application;
-use Symfony\Component\Console\Descriptor\TextApplicationDescriptor;
+use Symfony\Component\Console\Descriptor\XmlApplicationDescriptor;
 
-class TextApplicationDescriptorTest extends \PHPUnit_Framework_TestCase
+class XmlApplicationDescriptorTest extends \PHPUnit_Framework_TestCase
 {
     protected static $fixturesPath;
 
@@ -51,33 +51,18 @@ class TextApplicationDescriptorTest extends \PHPUnit_Framework_TestCase
         $application->add(new \FooCommand);
         $this->ensureStaticCommandHelp($application);
 
-        $descriptor = new TextApplicationDescriptor();
+        $descriptor = new XmlApplicationDescriptor();
 
         $this->assertStringEqualsFile(
-                self::$fixturesPath.'/Descriptors/formatted_application.txt',
-                $this->normalizeLineBreaks($descriptor->describe($application)),
-                '->describe($application) returns a formatted description in text format'
-        );
-    }
-
-    public function testRawDescription()
-    {
-        $application = new Application();
-        $application->add(new \FooCommand);
-        $this->ensureStaticCommandHelp($application);
-
-        $descriptor = new TextApplicationDescriptor();
-
-        $this->assertStringEqualsFile(
-                self::$fixturesPath.'/Descriptors/raw_application.txt',
-                $this->normalizeLineBreaks($descriptor->describe($application, true)),
-                '->describe($application, true) returns a raw description in text format'
+                self::$fixturesPath.'/Descriptors/application.xml',
+                $descriptor->describe($application),
+                '->describe($application) returns a formatted description in XML format'
         );
     }
 
     public function testSupportApplication()
     {
-        $descriptor = new TextApplicationDescriptor();
+        $descriptor = new XmlApplicationDescriptor();
         $this->assertTrue(
                 $descriptor->supports(new Application()),
                 '->supports($application) checks if the application is supported'
@@ -86,7 +71,7 @@ class TextApplicationDescriptorTest extends \PHPUnit_Framework_TestCase
 
     public function testDoesNotSupportNonApplication()
     {
-        $descriptor = new TextApplicationDescriptor();
+        $descriptor = new XmlApplicationDescriptor();
         $this->assertFalse(
                 $descriptor->supports(new \stdClass()),
                 '->supports($object) checks if the object is not supported'
@@ -95,9 +80,9 @@ class TextApplicationDescriptorTest extends \PHPUnit_Framework_TestCase
 
     public function testFormat()
     {
-        $descriptor = new TextApplicationDescriptor();
+        $descriptor = new XmlApplicationDescriptor();
         $this->assertSame(
-                'txt',
+                'xml',
                 $descriptor->getFormat(),
                 '->getFormat() returns the format'
         );
@@ -105,8 +90,8 @@ class TextApplicationDescriptorTest extends \PHPUnit_Framework_TestCase
 
     public function testUseFormating()
     {
-        $descriptor = new TextApplicationDescriptor();
-        $this->assertTrue(
+        $descriptor = new XmlApplicationDescriptor();
+        $this->assertFalse(
                 $descriptor->useFormatting(),
                 '->useFormatting() checks if formatting is used'
         );
