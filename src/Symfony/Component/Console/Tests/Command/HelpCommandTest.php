@@ -26,25 +26,25 @@ class HelpCommandTest extends \PHPUnit_Framework_TestCase
         $command->setApplication($application);
         $commandTester = new CommandTester($command);
         $commandTester->execute(array('command_name' => 'li'));
-        $this->assertRegExp('/list \[--xml\] \[--raw\] \[namespace\]/', $commandTester->getDisplay(), '->execute() returns a text help for the given command alias');
+        $this->assertRegExp('/list \[--format\[="\.\.\."\]\] \[--raw\] \[namespace\]/', $commandTester->getDisplay(), '->execute() returns a text help for the given command alias');
 
         $command = new HelpCommand();
 
         $commandTester = new CommandTester($command);
         $command->setCommand(new ListCommand());
         $commandTester->execute(array());
-        $this->assertRegExp('/list \[--xml\] \[--raw\] \[namespace\]/', $commandTester->getDisplay(), '->execute() returns a text help for the given command');
+        $this->assertRegExp('/list \[--format\[="\.\.\."\]\] \[--raw\] \[namespace\]/', $commandTester->getDisplay(), '->execute() returns a text help for the given command');
 
         $command->setCommand(new ListCommand());
-        $commandTester->execute(array('--xml' => true));
+        $commandTester->execute(array('--format' => 'xml'));
         $this->assertRegExp('/<command/', $commandTester->getDisplay(), '->execute() returns an XML help text if --xml is passed');
 
         $application = new Application();
         $commandTester = new CommandTester($application->get('help'));
         $commandTester->execute(array('command_name' => 'list'));
-        $this->assertRegExp('/list \[--xml\] \[--raw\] \[namespace\]/', $commandTester->getDisplay(), '->execute() returns a text help for the given command');
+        $this->assertRegExp('/list \[--format\[="\.\.\."\]\] \[--raw\] \[namespace\]/', $commandTester->getDisplay(), '->execute() returns a text help for the given command');
 
-        $commandTester->execute(array('command_name' => 'list', '--xml' => true));
+        $commandTester->execute(array('command_name' => 'list', 'format' => 'xml'));
         $this->assertRegExp('/<command/', $commandTester->getDisplay(), '->execute() returns an XML help text if --xml is passed');
     }
 }
