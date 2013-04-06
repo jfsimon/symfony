@@ -23,6 +23,14 @@ class TextCommandDescriptor implements DescriptorInterface
     /**
      * {@inheritdoc}
      */
+    public function configure(array $options)
+    {
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function describe($object, $raw = false)
     {
         if ($object->getApplication() && !$object->isApplicationDefinitionMerged()) {
