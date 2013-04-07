@@ -29,7 +29,15 @@ abstract class AbstractDescriptorTest extends \PHPUnit_Framework_TestCase
         $descriptor = $this->getDescriptor();
 
         foreach ($this->getObjects() as $name => $object) {
-            $description = file_get_contents(sprintf('%s/../Fixtures/%s.%s', __DIR__, $name, $descriptor->getFormat()));
+            $format = $descriptor->getFormat();
+
+            $description = file_get_contents(sprintf(
+                '%s/../Fixtures/descriptions/%s/%s.%s',
+                __DIR__,
+                $format,
+                $name,
+                $format)
+            );
             $data[] = array($descriptor, $object, $description);
         }
 
