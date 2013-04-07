@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Console\Descriptor;
+namespace Symfony\Component\Console\Descriptor\Xml;
 
 use Symfony\Component\Console\Application;
 
@@ -18,7 +18,7 @@ use Symfony\Component\Console\Application;
  *
  * @author Loïc Chardonnet <loic.chardonnet@sensiolabs.com>
  */
-class XmlApplicationDescriptor implements DescriptorInterface
+class ApplicationXmlDescriptor implements DescriptorInterface
 {
     /**
      * {@inheritdoc}

@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Console\Descriptor;
+namespace Symfony\Component\Console\Descriptor\Text;
 
 use Symfony\Component\Console\Command\Command;
 
@@ -18,7 +18,7 @@ use Symfony\Component\Console\Command\Command;
  *
  * @author Loïc Chardonnet <loic.chardonnet@sensiolabs.com>
  */
-class TextCommandDescriptor implements DescriptorInterface
+class CommandTextDescriptor extends AbstractTextDescriptor
 {
     /**
      * {@inheritdoc}
@@ -33,6 +33,8 @@ class TextCommandDescriptor implements DescriptorInterface
      */
     public function describe($object, $raw = false)
     {
+        $definitionDescriptor = new InputDefinitionTextDescriptor();
+
         if ($object->getApplication() && !$object->isApplicationDefinitionMerged()) {
             $object->getSynopsis();
             $object->mergeApplicationDefinition(false);

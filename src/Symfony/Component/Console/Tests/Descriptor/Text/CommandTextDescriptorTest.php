@@ -8,20 +8,20 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-namespace Symfony\Component\Console\Tests\Command;
+/*
+namespace Symfony\Component\Console\Tests\Descriptor\Text;
 
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Console\Descriptor\XmlCommandDescriptor;
+use Symfony\Component\Console\Descriptor\Text\TextCommandDescriptor;
 
-class XmlCommandDescriptorTest extends \PHPUnit_Framework_TestCase
+class TextCommandDescriptorTest extends \PHPUnit_Framework_TestCase
 {
     protected static $fixturesPath;
 
     public static function setUpBeforeClass()
     {
-        self::$fixturesPath = __DIR__.'/../Fixtures';
+        self::$fixturesPath = __DIR__.'/../../Fixtures';
         require_once self::$fixturesPath.'/TestCommand.php';
     }
 
@@ -32,18 +32,34 @@ class XmlCommandDescriptorTest extends \PHPUnit_Framework_TestCase
         $tester = new CommandTester($command);
         $tester->execute(array('command' => $command->getName()));
 
-        $descriptor = new XmlCommandDescriptor();
+        $descriptor = new TextCommandDescriptor();
 
         $this->assertStringEqualsFile(
-                self::$fixturesPath.'/Descriptors/command.xml',
+                self::$fixturesPath.'/Descriptors/formatted_command.txt',
                 $descriptor->describe($command),
-                '->describe($command) returns a description in XML format'
+                '->describe($command) returns a formatted description in text format'
+        );
+    }
+
+    public function testRawDescription()
+    {
+        $command = new \TestCommand();
+        $command->setApplication(new Application());
+        $tester = new CommandTester($command);
+        $tester->execute(array('command' => $command->getName()));
+
+        $descriptor = new TextCommandDescriptor();
+
+        $this->assertStringEqualsFile(
+                self::$fixturesPath.'/Descriptors/raw_command.txt',
+                $descriptor->describe($command, true),
+                '->describe($command) returns a formatted description in text format'
         );
     }
 
     public function testSupportCommand()
     {
-        $descriptor = new XmlCommandDescriptor();
+        $descriptor = new TextCommandDescriptor();
         $this->assertTrue(
                 $descriptor->supports(new \TestCommand()),
                 '->supports($commands) checks if the command is supported'
@@ -52,7 +68,7 @@ class XmlCommandDescriptorTest extends \PHPUnit_Framework_TestCase
 
     public function testDoesNotSupportNonCommand()
     {
-        $descriptor = new XmlCommandDescriptor();
+        $descriptor = new TextCommandDescriptor();
         $this->assertFalse(
                 $descriptor->supports(new \stdClass()),
                 '->supports($object) checks if the object is not supported'
@@ -61,9 +77,9 @@ class XmlCommandDescriptorTest extends \PHPUnit_Framework_TestCase
 
     public function testFormat()
     {
-        $descriptor = new XmlCommandDescriptor();
+        $descriptor = new TextCommandDescriptor();
         $this->assertSame(
-                'xml',
+                'txt',
                 $descriptor->getFormat(),
                 '->getFormat() returns the format'
         );
@@ -71,10 +87,10 @@ class XmlCommandDescriptorTest extends \PHPUnit_Framework_TestCase
 
     public function testUseFormating()
     {
-        $descriptor = new XmlCommandDescriptor();
-        $this->assertFalse(
+        $descriptor = new TextCommandDescriptor();
+        $this->assertTrue(
                 $descriptor->useFormatting(),
                 '->useFormatting() checks if formatting is used'
         );
     }
-}
+}*/

@@ -19,7 +19,7 @@ use Symfony\Component\Console\Descriptor\ApplicationDescription;
  *
  * @author Loïc Chardonnet <loic.chardonnet@sensiolabs.com>
  */
-class TextApplicationDescriptor extends AbstractTextDescriptor
+class ApplicationTextDescriptor extends AbstractTextDescriptor
 {
     /**
      * @var string|null
@@ -50,7 +50,7 @@ class TextApplicationDescriptor extends AbstractTextDescriptor
     public function describe($object, $raw = false)
     {
         $description = new ApplicationDescription($object, $this->namespace);
-        $descriptor = new CommandTextDescriptor();
+        $descriptor = new TextCommandDescriptor();
 
         $commands = $description->getCommands();
 

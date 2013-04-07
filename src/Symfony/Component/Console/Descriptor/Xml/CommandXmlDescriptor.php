@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Console\Descriptor;
+namespace Symfony\Component\Console\Descriptor\Xml;
 
 use Symfony\Component\Console\Command\Command;
 
@@ -18,7 +18,7 @@ use Symfony\Component\Console\Command\Command;
  *
  * @author Loïc Chardonnet <loic.chardonnet@sensiolabs.com>
  */
-class XmlCommandDescriptor implements DescriptorInterface
+class CommandXmlDescriptor implements DescriptorInterface
 {
     /**
      * {@inheritdoc}
