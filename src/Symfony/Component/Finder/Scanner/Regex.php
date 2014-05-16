@@ -48,7 +48,7 @@ class Regex
 
                 // fixme: find something stronger
                 $this->starting = '^' === substr($this->pattern, 0, 1);
-                $this->ending = '$' === substr($this->pattern, -1);
+                $this->ending = '$' === substr($this->pattern, -1) && '\\' !== substr($this->pattern, -2, -1);
 
                 return;
             }

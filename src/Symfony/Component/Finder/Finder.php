@@ -11,11 +11,10 @@
 
 namespace Symfony\Component\Finder;
 
-use Symfony\Component\Finder\Adapter\AdapterInterface;
-use Symfony\Component\Finder\Adapter\GnuFindAdapter;
-use Symfony\Component\Finder\Adapter\BsdFindAdapter;
-use Symfony\Component\Finder\Adapter\PhpAdapter;
-use Symfony\Component\Finder\Exception\ExceptionInterface;
+use Symfony\Component\Finder\Scanner\Builder;
+use Symfony\Component\Finder\Scanner\Constraints;
+use Symfony\Component\Finder\Scanner\Expression;
+use Symfony\Component\Finder\Scanner\Scanner;
 
 /**
  * Finder allows to build rules to find files and directories.
@@ -37,7 +36,7 @@ class Finder implements \IteratorAggregate, \Countable
     const IGNORE_VCS_FILES = 1;
     const IGNORE_DOT_FILES = 2;
 
-    private $mode        = 0;
+    private $mode        = Constraints::TYPE_ALL;
     private $names       = array();
     private $notNames    = array();
     private $exclude     = array();
@@ -52,7 +51,6 @@ class Finder implements \IteratorAggregate, \Countable
     private $iterators   = array();
     private $contains    = array();
     private $notContains = array();
-    private $adapters    = array();
     private $paths       = array();
     private $notPaths    = array();
     private $ignoreUnreadableDirs = false;
@@ -65,14 +63,6 @@ class Finder implements \IteratorAggregate, \Countable
     public function __construct()
     {
         $this->ignore = static::IGNORE_VCS_FILES | static::IGNORE_DOT_FILES;
-
-        $this
-            ->addAdapter(new GnuFindAdapter())
-            ->addAdapter(new BsdFindAdapter())
-            ->addAdapter(new Scanner\Adapter())
-            ->addAdapter(new PhpAdapter(), -50)
-            ->setAdapter('scanner')
-        ;
     }
 
     /**
@@ -88,82 +78,6 @@ class Finder implements \IteratorAggregate, \Countable
     }
 
     /**
-     * Registers a finder engine implementation.
-     *
-     * @param AdapterInterface $adapter  An adapter instance
-     * @param int              $priority Highest is selected first
-     *
-     * @return Finder The current Finder instance
-     */
-    public function addAdapter(AdapterInterface $adapter, $priority = 0)
-    {
-        $this->adapters[$adapter->getName()] = array(
-            'adapter'  => $adapter,
-            'priority' => $priority,
-            'selected' => false,
-        );
-
-        return $this->sortAdapters();
-    }
-
-    /**
-     * Sets the selected adapter to the best one according to the current platform the code is run on.
-     *
-     * @return Finder The current Finder instance
-     */
-    public function useBestAdapter()
-    {
-        $this->resetAdapterSelection();
-
-        return $this->sortAdapters();
-    }
-
-    /**
-     * Selects the adapter to use.
-     *
-     * @param string $name
-     *
-     * @throws \InvalidArgumentException
-     *
-     * @return Finder The current Finder instance
-     */
-    public function setAdapter($name)
-    {
-        if (!isset($this->adapters[$name])) {
-            throw new \InvalidArgumentException(sprintf('Adapter "%s" does not exist.', $name));
-        }
-
-        $this->resetAdapterSelection();
-        $this->adapters[$name]['selected'] = true;
-
-        return $this->sortAdapters();
-    }
-
-    /**
-     * Removes all adapters registered in the finder.
-     *
-     * @return Finder The current Finder instance
-     */
-    public function removeAdapters()
-    {
-        $this->adapters = array();
-
-        return $this;
-    }
-
-    /**
-     * Returns registered adapters ordered by priority without extra information.
-     *
-     * @return AdapterInterface[]
-     */
-    public function getAdapters()
-    {
-        return array_values(array_map(function (array $adapter) {
-            return $adapter['adapter'];
-        }, $this->adapters));
-    }
-
-    /**
      * Restricts the matching to directories only.
      *
      * @return Finder The current Finder instance
@@ -172,7 +86,7 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function directories()
     {
-        $this->mode = Iterator\FileTypeFilterIterator::ONLY_DIRECTORIES;
+        $this->mode = Constraints::TYPE_DIRECTORIES;
 
         return $this;
     }
@@ -186,7 +100,7 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function files()
     {
-        $this->mode = Iterator\FileTypeFilterIterator::ONLY_FILES;
+        $this->mode = Constraints::TYPE_FILES;
 
         return $this;
     }
@@ -746,22 +660,6 @@ class Finder implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return Finder The current Finder instance
-     */
-    private function sortAdapters()
-    {
-        uasort($this->adapters, function (array $a, array $b) {
-            if ($a['selected'] || $b['selected']) {
-                return $a['selected'] ? -1 : 1;
-            }
-
-            return $a['priority'] > $b['priority'] ? -1 : 1;
-        });
-
-        return $this;
-    }
-
-    /**
      * @param $dir
      *
      * @return \Iterator
@@ -778,53 +676,48 @@ class Finder implements \IteratorAggregate, \Countable
             $this->notPaths[] = '#(^|/)\..+(/|$)#';
         }
 
-        foreach ($this->adapters as $adapter) {
-            if ($adapter['adapter']->isSupported()) {
-                try {
-                    return $this
-                        ->buildAdapter($adapter['adapter'])
-                        ->searchInDirectory($dir);
-                } catch (ExceptionInterface $e) {}
-            }
+        $builder = new Builder($this->mode, $this->depths, $this->exclude);
+
+        foreach ($this->notPaths as $value) {
+            $builder->notPath(new Expression($value));
         }
 
-        throw new \RuntimeException('No supported adapter found.');
-    }
+        foreach ($this->notNames as $value) {
+            $builder->notName(new Expression($value));
+        }
 
-    /**
-     * @param AdapterInterface $adapter
-     *
-     * @return AdapterInterface
-     */
-    private function buildAdapter(AdapterInterface $adapter)
-    {
-        return $adapter
-            ->setFollowLinks($this->followLinks)
-            ->setDepths($this->depths)
-            ->setMode($this->mode)
-            ->setExclude($this->exclude)
-            ->setNames($this->names)
-            ->setNotNames($this->notNames)
-            ->setContains($this->contains)
-            ->setNotContains($this->notContains)
-            ->setSizes($this->sizes)
-            ->setDates($this->dates)
-            ->setFilters($this->filters)
-            ->setSort($this->sort)
-            ->setPath($this->paths)
-            ->setNotPath($this->notPaths)
-            ->ignoreUnreadableDirs($this->ignoreUnreadableDirs);
-    }
+        foreach ($this->paths as $value) {
+            $builder->path(new Expression($value));
+        }
 
-    /**
-     * Unselects all adapters.
-     */
-    private function resetAdapterSelection()
-    {
-        $this->adapters = array_map(function (array $properties) {
-            $properties['selected'] = false;
+        foreach ($this->names as $value) {
+            $builder->name(new Expression($value));
+        }
 
-            return $properties;
-        }, $this->adapters);
+        $scanner = new Scanner($dir, $builder->build(), $this->ignoreUnreadableDirs, $this->followLinks);
+        $iterator = $scanner->getIterator();
+
+        if ($this->sizes) {
+            $iterator = new Iterator\SizeRangeFilterIterator($iterator, $this->sizes);
+        }
+
+        if ($this->dates) {
+            $iterator = new Iterator\DateRangeFilterIterator($iterator, $this->dates);
+        }
+
+        if ($this->filters) {
+            $iterator = new Iterator\CustomFilterIterator($iterator, $this->filters);
+        }
+
+        if ($this->contains || $this->notContains) {
+            $iterator = new Iterator\FilecontentFilterIterator($iterator, $this->contains, $this->notContains);
+        }
+
+        if ($this->sort) {
+            $iteratorAggregate = new Iterator\SortableIterator($iterator, $this->sort);
+            $iterator = $iteratorAggregate->getIterator();
+        }
+
+        return $iterator;
     }
 }

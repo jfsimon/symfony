@@ -59,11 +59,15 @@ class Expression
     /**
      * Returns expression as a Regex instance.
      *
+     * @param bool $inPath
+     *
      * @return Regex
      */
-    public function getRegex()
+    public function getRegex($inPath = false)
     {
-        return $this->value instanceof Regex ? $this->value : new Regex('~(^|/)'.preg_quote($this->value, '~').'(/|$)~');
+        return $this->value instanceof Regex
+            ? $this->value
+            : new Regex(($inPath ? '~(^|/)' : '~^').preg_quote($this->value, '~').($inPath ? '(/|$)~' : '$~'));
     }
 
     /**

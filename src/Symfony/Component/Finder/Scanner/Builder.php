@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Finder\Scanner;
 
+use Symfony\Component\Finder\Comparator\Comparator;
+
 /**
  * Scanner constraints builder.
  *
@@ -29,16 +31,14 @@ class Builder
     /**
      * Constructor.
      *
-     * @param int   $type
-     * @param int   $minDepth
-     * @param int   $maxDepth
-     * @param array $excludedNames
+     * @param int          $type
+     * @param Comparator[] $depths
+     * @param array        $excludedNames
      */
-    public function __construct($type = Constraints::TYPE_ALL, $minDepth = 0, $maxDepth = PHP_INT_MAX, array $excludedNames = array())
+    public function __construct($type = Constraints::TYPE_ALL, array $depths, array $excludedNames = array())
     {
         $this->type = $type;
-        $this->minDepth = $minDepth;
-        $this->maxDepth = $maxDepth;
+        $this->computeDepths($depths);
         $this->excludedNames = array_merge(array('.', '..'), $excludedNames);
     }
 
@@ -71,7 +71,7 @@ class Builder
      */
     public function notPath(Expression $expression)
     {
-        $regex = $expression->getRegex();
+        $regex = $expression->getRegex(true);
         $key = $regex->isEnding() ? 'excluded_ending_patterns' : 'excluded_patterns';
 
         if (!isset($this->pathnameConstraints[$key])) {
@@ -112,7 +112,7 @@ class Builder
      */
     public function path(Expression $expression)
     {
-        $regex = $expression->getRegex();
+        $regex = $expression->getRegex(true);
         $key = $regex->isEnding() ? 'included_ending_patterns' : 'included_patterns';
 
         if (!isset($this->pathnameConstraints[$key])) {
@@ -145,5 +145,35 @@ class Builder
             $this->type, $this->minDepth, $this->maxDepth,
             $this->excludedNames, $this->pathnameConstraints, $this->filenameConstraints
         );
+    }
+
+    /**
+     * Computes min/max depths.
+     *
+     * @param Comparator[] $depths
+     */
+    private function computeDepths(array $depths)
+    {
+        $this->minDepth = 0;
+        $this->maxDepth = PHP_INT_MAX;
+
+        foreach ($depths as $comparator) {
+            switch ($comparator->getOperator()) {
+                case '>':
+                    $this->minDepth = (int) $comparator->getTarget() + 1;
+                    break;
+                case '>=':
+                    $this->minDepth = (int) $comparator->getTarget();
+                    break;
+                case '<':
+                    $this->maxDepth = (int) $comparator->getTarget() - 1;
+                    break;
+                case '<=':
+                    $this->maxDepth = (int) $comparator->getTarget();
+                    break;
+                default:
+                    $this->minDepth = $this->maxDepth = (int) $comparator->getTarget();
+            }
+        }
     }
 }
